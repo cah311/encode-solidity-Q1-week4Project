@@ -16,12 +16,16 @@ exports.AppController = void 0;
 const common_1 = require("@nestjs/common");
 const app_service_1 = require("./app.service");
 const requestToken_dto_1 = require("./dtos/requestToken.dto");
+const Voting_dto_1 = require("./dtos/Voting.dto");
 let AppController = class AppController {
     constructor(appService) {
         this.appService = appService;
     }
     getContractAddress() {
         return { result: this.appService.getContractAddress() };
+    }
+    getBallotAddress() {
+        return { result: this.appService.getBallotAddress() };
     }
     getTotalSupply() {
         return this.appService.getTotalSupply();
@@ -34,7 +38,16 @@ let AppController = class AppController {
         return this.appService.getTransaction(hash);
     }
     requestTokens(body) {
-        return { result: this.appService.requestTokens(body.address, body.amount) };
+        return this.appService.requestTokens(body.address, body.amount);
+    }
+    exerciseVote(body) {
+        return this.appService.exerciseVote(body.proposalIndex, body.amount);
+    }
+    getVotingPower(address) {
+        return this.appService.getVotingPower(address);
+    }
+    getWinningProposal() {
+        return this.appService.getWinningProposal();
     }
 };
 __decorate([
@@ -43,6 +56,12 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Object)
 ], AppController.prototype, "getContractAddress", null);
+__decorate([
+    (0, common_1.Get)("ballot-address"),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Object)
+], AppController.prototype, "getBallotAddress", null);
 __decorate([
     (0, common_1.Get)("total-supply"),
     __metadata("design:type", Function),
@@ -71,6 +90,26 @@ __decorate([
     __metadata("design:paramtypes", [requestToken_dto_1.RequestTokensDTO]),
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "requestTokens", null);
+__decorate([
+    (0, common_1.Post)("voting"),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Voting_dto_1.VotingDTO]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "exerciseVote", null);
+__decorate([
+    (0, common_1.Get)("voting-power/:address"),
+    __param(0, (0, common_1.Param)("address")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "getVotingPower", null);
+__decorate([
+    (0, common_1.Get)("winning-proposal"),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], AppController.prototype, "getWinningProposal", null);
 AppController = __decorate([
     (0, common_1.Controller)(),
     __metadata("design:paramtypes", [app_service_1.AppService])

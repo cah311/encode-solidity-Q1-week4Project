@@ -2,10 +2,12 @@ import { HttpClient } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { BigNumber, Contract, ethers, utils, Wallet } from 'ethers';
 import tokenJson from '../assets/MyToken.json';
+import ballotJson from '../assets/TokenizedBallot.json';
 import { WalletService } from './services/wallet.service';
 import detectEthereumProvider from '@metamask/detect-provider';
 
 const TOKEN_ADDRESS_API_URL = 'http://localhost:3000/contract-address';
+const BALLOT_ADDRESS_API_URL = 'http://localhost:3000/ballot-address';
 const TOKEN_MINT_API_URL = 'http://localhost:3000/request-tokens';
 
 @Component({
@@ -22,6 +24,9 @@ export class AppComponent {
   tokenContractAddress: string | undefined;
   tokenContract: Contract | undefined;
   tokenSupply: number | undefined;
+
+  ballotContractAddress: string | undefined;
+  ballotContract: Contract | undefined;
 
   title = 'ng-connect-ethereum-wallet';
 
@@ -43,6 +48,12 @@ export class AppComponent {
         this.tokenContractAddress = answer.result;
         this.getTokenInfo();
       });
+    this.http
+      .get<{ result: string }>(BALLOT_ADDRESS_API_URL)
+      .subscribe((answer) => {
+        this.ballotContractAddress = answer.result;
+        this.getBallotInfo();
+      });
   }
 
   getTokenInfo() {
@@ -58,22 +69,31 @@ export class AppComponent {
     });
   }
 
+  getBallotInfo() {
+    if (!this.ballotContractAddress) return;
+    this.ballotContract = new Contract(
+      this.ballotContractAddress,
+      ballotJson.abi,
+      this.userWallet ?? this.provider
+    );
+  }
+
   clearBlock() {
     this.blockNumber = undefined;
   }
 
   async createWallet() {
-    // this.userWallet = Wallet.createRandom().connect(this.provider);
-    // this.userWallet.getBalance().then((balanceBN) => {
-    //   const balanceStr = utils.formatEther(balanceBN);
-    //   this.userBalance = parseFloat(balanceStr);
-    // });
-    // this.tokenContract?.['balanceOf'](this.userWallet?.address).then(
-    //   (tokenBalanceBN: BigNumber) => {
-    //     const tokenBalanceStr = utils.formatEther(tokenBalanceBN);
-    //     this.userTokenBalance = parseFloat(tokenBalanceStr);
-    //   }
-    // );
+    this.userWallet = Wallet.createRandom().connect(this.provider);
+    this.userWallet.getBalance().then((balanceBN) => {
+      const balanceStr = utils.formatEther(balanceBN);
+      this.userBalance = parseFloat(balanceStr);
+    });
+    this.tokenContract?.['balanceOf'](this.userWallet?.address).then(
+      (tokenBalanceBN: BigNumber) => {
+        const tokenBalanceStr = utils.formatEther(tokenBalanceBN);
+        this.userTokenBalance = parseFloat(tokenBalanceStr);
+      }
+    );
   }
 
   connectToWallet() {
@@ -86,22 +106,25 @@ export class AppComponent {
     if (accounts.length > 0) {
       this.walletConnected = true;
       this.walletId = accounts[0];
-      this.walletId?.getBalance().then((balanceBN) => {
-        const balanceStr = utils.formatEther(balanceBN);
-        this.userBalance = parseFloat(balanceStr);
-        alert(`${this.userBalance}`);
-        this.tokenContract?.['balanceOf'](this.userWallet?.address).then(
-          (tokenBalanceBN: BigNumber) => {
-            const tokenBalanceStr = utils.formatEther(tokenBalanceBN);
-            this.userTokenBalance = parseFloat(tokenBalanceStr);
-          }
-        );
-      });
+      const provd = await detectEthereumProvider();
+
+      // this.walletId?.getBalance().then((balanceBN) => {
+      //   const balanceStr = utils.formatEther(balanceBN);
+      //   this.userBalance = parseFloat(balanceStr);
+      //   alert(`${this.userBalance}`);
+      //   this.tokenContract?.['balanceOf'](this.userWallet?.address).then(
+      //     (tokenBalanceBN: BigNumber) => {
+      //       const tokenBalanceStr = utils.formatEther(tokenBalanceBN);
+      //       this.userTokenBalance = parseFloat(tokenBalanceStr);
+      //     }
+      //   );
+      // });
     }
   }
 
   requestTokens(value: string) {
     const body = { address: this.userWallet?.address, value: value };
+    console.log(value);
     this.http
       .post<{ result: any }>(TOKEN_MINT_API_URL, body)
       .subscribe((ans) => {

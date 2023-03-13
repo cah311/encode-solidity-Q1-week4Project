@@ -7,18 +7,18 @@
         {{ blockNumber }}
       </p>
       <button
-        *ngIf="!walletConnected"
         type="button"
         class="btn btn-success btn-lg px-4 gap-3"
-        (click)="connectToWallet()"
+        (click)="createWallet()"
       >
-        {{ walletConnected ? "Recreate" : "Connect" }} Wallet
+        {{ walletConnected ? "Recreate" : "Create" }} Wallet
       </button>
-      <div *ngIf="walletConnected" class="card my-4">
+
+      <div *ngIf="userWallet" class="card my-4">
         <div class="card-body">
           <h5 class="card-title">User Wallet</h5>
           <h6 class="card-subtitle mb-2 text-muted">
-            {{ walletId }}
+            {{ userWallet.address }}
           </h6>
           <p class="card-text">Balance: {{ userBalance }} ETH</p>
           <p class="card-text">Balance: {{ userTokenBalance }} MTK</p>
@@ -30,7 +30,7 @@
               *ngIf="valueInput.value"
               type="button"
               class="btn btn-danger btn-lg px-4 gap-3"
-              (click)="requestTokens(valueInput.value)"
+              (click)="requestTokens(valueInput.value.toString())"
             >
               Request
             </button>
@@ -44,6 +44,14 @@
             {{ tokenContractAddress }}
           </h6>
           <p class="card-text">TotalSupply: {{ tokenSupply }} MTK</p>
+        </div>
+      </div>
+      <div *ngIf="ballotContractAddress" class="card my-4">
+        <div class="card-body">
+          <h5 class="card-title">Ballot Info</h5>
+          <h6 class="card-subtitle mb-2 text-muted">
+            {{ ballotContractAddress }}
+          </h6>
         </div>
       </div>
     </div>
